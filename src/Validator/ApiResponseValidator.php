@@ -1,12 +1,13 @@
 <?php
 
-namespace Language\Generation;
+
+namespace Language\Validator;
 
 use Exception;
 
-abstract class AbstractGenerateLanguageFile implements GenerateLanguageFile
+class ApiResponseValidator implements Validator
 {
-    protected function validateApiResult($result)
+    public function validate($result): void
     {
         // Error during the api call.
         if ($result === false || !isset($result['status'])) {

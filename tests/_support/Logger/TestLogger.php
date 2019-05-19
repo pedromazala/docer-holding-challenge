@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Test\Support\Language;
+namespace Test\Support\Language\Logger;
 
 use Language\Logger\Logger;
 

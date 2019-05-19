@@ -3,34 +3,12 @@
 namespace Test\Language\Generation;
 
 
-use Language\Generation\AbstractGenerateLanguageFile;
+use Language\Validator\ApiResponseValidator;
 use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\TestCase;
 
-class AbstractGenerateLanguageFileTest extends TestCase
+class ApiResponseValidatorTest extends TestCase
 {
-    /**
-     * @var AbstractGenerateLanguageFile
-     */
-    private $instanceFromAbstractClass;
-
-    protected function setUp()
-    {
-        parent::setUp();
-
-        $this->instanceFromAbstractClass = new class extends AbstractGenerateLanguageFile {
-            public function generate(): void
-            {
-                print "do nothing";
-            }
-
-            public function exposeValidateApiResult($result): void
-            {
-                $this->validateApiResult($result);
-            }
-        };
-    }
-
     public function test_expected_data()
     {
         $data = [
@@ -38,7 +16,8 @@ class AbstractGenerateLanguageFileTest extends TestCase
             'data' => 'some awesome data',
         ];
 
-        $this->instanceFromAbstractClass->exposeValidateApiResult($data);
+        $validator = new ApiResponseValidator();
+        $validator->validate($data);
         // no one exception was thrown
         Assert::assertTrue(true);
     }
@@ -47,18 +26,20 @@ class AbstractGenerateLanguageFileTest extends TestCase
     {
         $data = false;
 
+        $validator = new ApiResponseValidator();
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('Error during the api call');
-        $this->instanceFromAbstractClass->exposeValidateApiResult($data);
+        $validator->validate($data);
     }
 
     public function test_error_calling_api_result_without_status()
     {
         $data = ['data' => 'some awesome data'];
 
+        $validator = new ApiResponseValidator();
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('Error during the api call');
-        $this->instanceFromAbstractClass->exposeValidateApiResult($data);
+        $validator->validate($data);
     }
 
     public function test_result_nok_and_error_data()
@@ -70,9 +51,10 @@ class AbstractGenerateLanguageFileTest extends TestCase
             'error_type' => 'type',
         ];
 
+        $validator = new ApiResponseValidator();
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('Wrong response: Type(type) Code(code) some awful data');
-        $this->instanceFromAbstractClass->exposeValidateApiResult($data);
+        $validator->validate($data);
     }
 
     public function test_data_false()
@@ -82,8 +64,9 @@ class AbstractGenerateLanguageFileTest extends TestCase
             'data' => false,
         ];
 
+        $validator = new ApiResponseValidator();
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('Wrong content!');
-        $this->instanceFromAbstractClass->exposeValidateApiResult($data);
+        $validator->validate($data);
     }
 }

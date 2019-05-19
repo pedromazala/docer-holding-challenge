@@ -5,25 +5,18 @@ namespace Test\Language;
 
 use Language\Config;
 use Language\LanguageBatchBo;
-use Language\Logger\StdoutLogger;
 use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\TestCase;
-use Test\Support\Language\TestLogger;
 
 class LanguageBatchBoTest extends TestCase
 {
-    protected function setUp()
-    {
-        parent::setUp();
-        LanguageBatchBo::setLogger(new TestLogger());
-    }
-
     public function test_generate_language_files()
     {
         $languageBatchBo = new LanguageBatchBo();
 
+        ob_start();
         $languageBatchBo->generateLanguageFiles();
-        $output = TestLogger::$output;
+        $output = ob_get_clean();
 
         $expected_output = <<<STRING
 
@@ -41,12 +34,13 @@ STRING;
         $languageBatchBo = new LanguageBatchBo();
 
         $base_dir = Config::get('system.paths.root');
-        unlink($base_dir . '/cache/portal/en.php');
-        unlink($base_dir . '/cache/portal/hu.php');
+        @unlink($base_dir . '/cache/portal/en.php');
+        @unlink($base_dir . '/cache/portal/hu.php');
         rmdir($base_dir . '/cache/portal/');
 
+        ob_start();
         $languageBatchBo->generateLanguageFiles();
-        $output = TestLogger::$output;
+        $output = ob_get_clean();
 
         $expected_output = <<<STRING
 
@@ -67,8 +61,9 @@ STRING;
         $languageBatchBo = new LanguageBatchBo();
         $base_dir = Config::get('system.paths.root');
 
+        ob_start();
         $languageBatchBo->generateAppletLanguageXmlFiles();
-        $output = TestLogger::$output;
+        $output = ob_get_clean();
 
         $expected_output = <<<STRING
 
@@ -89,10 +84,14 @@ STRING;
         $languageBatchBo = new LanguageBatchBo();
 
         $base_dir = Config::get('system.paths.root');
+        @unlink($base_dir . '/cache/portal/en.php');
+        @unlink($base_dir . '/cache/portal/hu.php');
+        rmdir($base_dir . '/cache/portal/');
         unlink($base_dir . '/cache/flash/lang_en.xml');
 
+        ob_start();
         $languageBatchBo->generateAppletLanguageXmlFiles();
-        $output = TestLogger::$output;
+        $output = ob_get_clean();
 
         $expected_output = <<<STRING
 
@@ -115,12 +114,13 @@ STRING;
         $languageBatchBo = new LanguageBatchBo();
 
         $base_dir = Config::get('system.paths.root');
-        unlink($base_dir . '/cache/portal/en.php');
-        unlink($base_dir . '/cache/portal/hu.php');
-        rmdir($base_dir . '/cache/portal/');
+        @unlink($base_dir . '/cache/portal/en.php');
+        @unlink($base_dir . '/cache/portal/hu.php');
+        @rmdir($base_dir . '/cache/portal/');
 
+        ob_start();
         $languageBatchBo->generateAppletLanguageXmlFiles();
-        $output = TestLogger::$output;
+        $output = ob_get_clean();
 
         $expected_output = <<<STRING
 
@@ -143,10 +143,11 @@ STRING;
         $languageBatchBo = new LanguageBatchBo();
 
         $base_dir = Config::get('system.paths.root');
-        unlink($base_dir . '/cache/flash/lang_en.xml');
+        @unlink($base_dir . '/cache/flash/lang_en.xml');
 
+        ob_start();
         $languageBatchBo->generateLanguageFiles();
-        $output = TestLogger::$output;
+        $output = ob_get_clean();
 
         $expected_output = <<<STRING
 
@@ -160,19 +161,5 @@ STRING;
 
         Assert::assertFileExists($base_dir . '/cache/portal/en.php');
         Assert::assertFileExists($base_dir . '/cache/portal/hu.php');
-    }
-
-    public function test_should_initialize_logger_with_stdout_if_empty()
-    {
-        LanguageBatchBo::setLogger(null);
-
-        Assert::assertInstanceOf(StdoutLogger::class, LanguageBatchBo::getLogger());
-    }
-
-    protected function tearDown()
-    {
-        parent::tearDown();
-        LanguageBatchBo::setLogger(null);
-        TestLogger::clear();
     }
 }

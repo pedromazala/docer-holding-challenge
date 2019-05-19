@@ -5,30 +5,14 @@ namespace Language;
 use Exception;
 use Language\Generation\GenerateLanguageFileFlash;
 use Language\Generation\GenerateLanguageFilePortal;
-use Language\Logger\Logger;
 use Language\Logger\StdoutLogger;
+use Language\Validator\ApiResponseValidator;
 
 /**
  * Business logic related to generating language files.
  */
 class LanguageBatchBo
 {
-    /**
-     * @var Logger
-     */
-    private static $logger;
-
-    public static function setLogger(?Logger $logger)
-    {
-        self::$logger = $logger;
-    }
-
-    public static function getLogger(): Logger
-    {
-        self::initLogger();
-        return self::$logger;
-    }
-
     /**
      * Starts the language file generation.
      *
@@ -37,12 +21,12 @@ class LanguageBatchBo
      */
     public static function generateLanguageFiles()
     {
-        self::initLogger();
-        $generateLanguageFilePortal = new GenerateLanguageFilePortal(
-            self::$logger,
-            Config::get('system.translated_applications')
-        );
+        $logger = new StdoutLogger();
+        $validator = new ApiResponseValidator();
+        $root_path = Config::get('system.paths.root');
+        $applications = Config::get('system.translated_applications');
 
+        $generateLanguageFilePortal = new GenerateLanguageFilePortal($logger, $validator, $root_path, $applications);
         $generateLanguageFilePortal->generate();
     }
 
@@ -55,16 +39,15 @@ class LanguageBatchBo
      */
     public static function generateAppletLanguageXmlFiles()
     {
-        self::initLogger();
-        $generateLanguageFileFlash = new GenerateLanguageFileFlash(self::$logger);
+        $logger = new StdoutLogger();
+        $validator = new ApiResponseValidator();
+        // List of the applets [directory => applet_id].
+        $root_path = Config::get('system.paths.root');
+        $applets = [
+            'memberapplet' => 'JSM2_MemberApplet',
+        ];
 
+        $generateLanguageFileFlash = new GenerateLanguageFileFlash($logger, $validator, $root_path, $applets);
         $generateLanguageFileFlash->generate();
-    }
-
-    private static function initLogger(): void
-    {
-        if (is_null(self::$logger)) {
-            self::$logger = new StdoutLogger();
-        }
     }
 }
