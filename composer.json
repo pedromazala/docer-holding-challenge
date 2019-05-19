@@ -11,6 +11,7 @@
   },
   "autoload-dev": {
     "psr-4": {
+      "Test\\Support\\Language\\": "tests/_support",
       "Test\\Language\\": "tests/src/"
     }
   }

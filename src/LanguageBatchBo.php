@@ -3,6 +3,8 @@
 namespace Language;
 
 use Exception;
+use Language\Logger\Logger;
+use Language\Logger\StdoutLogger;
 
 /**
  * Business logic related to generating language files.
@@ -17,6 +19,16 @@ class LanguageBatchBo
     protected static $applications = array();
 
     /**
+     * @var Logger
+     */
+    private static $logger;
+
+    public static function setLogger(?Logger $logger)
+    {
+        self::$logger = $logger;
+    }
+
+    /**
      * Starts the language file generation.
      *
      * @return void
@@ -27,16 +39,16 @@ class LanguageBatchBo
         // The applications where we need to translate.
         self::$applications = Config::get('system.translated_applications');
 
-        echo PHP_EOL . "Generating language files" . PHP_EOL;
+        self::log(PHP_EOL . "Generating language files" . PHP_EOL);
         foreach (self::$applications as $application => $languages) {
-            echo "[APPLICATION: " . $application . "]" . PHP_EOL;
+            self::log("[APPLICATION: " . $application . "]" . PHP_EOL);
             foreach ($languages as $language) {
-                echo "\t[LANGUAGE: " . $language . "]";
+                self::log("\t[LANGUAGE: " . $language . "]");
                 if (!self::getLanguageFile($application, $language)) {
                     throw new Exception('Unable to generate language file!');
                 }
 
-                echo " OK" . PHP_EOL;
+                self::log(" OK" . PHP_EOL);
             }
         }
     }
@@ -108,15 +120,15 @@ class LanguageBatchBo
             'memberapplet' => 'JSM2_MemberApplet',
         );
 
-        echo PHP_EOL . "Getting applet language XMLs.." . PHP_EOL;
+        self::log(PHP_EOL . "Getting applet language XMLs.." . PHP_EOL);
 
         foreach ($applets as $appletDirectory => $appletLanguageId) {
-            echo " Getting > $appletLanguageId ($appletDirectory) language xmls.." . PHP_EOL;
+            self::log(" Getting > $appletLanguageId ($appletDirectory) language xmls.." . PHP_EOL);
             $languages = self::getAppletLanguages($appletLanguageId);
             if (empty($languages)) {
                 throw new Exception('There is no available languages for the ' . $appletLanguageId . ' applet.');
             }
-            echo ' - Available languages: ' . implode(', ', $languages) . "" . PHP_EOL;
+            self::log(' - Available languages: ' . implode(', ', $languages) . "" . PHP_EOL);
 
             $path = Config::get('system.paths.root') . '/cache/flash';
             foreach ($languages as $language) {
@@ -126,12 +138,12 @@ class LanguageBatchBo
                     throw new Exception('Unable to save applet: (' . $appletLanguageId . ') language: (' . $language . ') xml (' . $xmlFile . ')!');
                 }
 
-                echo " OK saving $xmlFile was successful." . PHP_EOL;
+                self::log(" OK saving $xmlFile was successful." . PHP_EOL);
             }
-            echo " < $appletLanguageId ($appletDirectory) language xml cached." . PHP_EOL;
+            self::log(" < $appletLanguageId ($appletDirectory) language xml cached." . PHP_EOL);
         }
 
-        echo PHP_EOL . "Applet language XMLs generated." . PHP_EOL;
+        self::log(PHP_EOL . "Applet language XMLs generated." . PHP_EOL);
     }
 
     /**
@@ -223,5 +235,13 @@ class LanguageBatchBo
         if ($result['data'] === false) {
             throw new Exception('Wrong content!');
         }
+    }
+
+    private static function log(string $string)
+    {
+        if (is_null(self::$logger)) {
+            self::$logger = new StdoutLogger();
+        }
+        self::$logger->print($string);
     }
 }
