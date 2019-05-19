@@ -5,6 +5,7 @@ namespace Test\Language;
 
 use Language\Config;
 use Language\LanguageBatchBo;
+use Language\Logger\StdoutLogger;
 use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\TestCase;
 use Test\Support\Language\TestLogger;
@@ -159,6 +160,13 @@ STRING;
 
         Assert::assertFileExists($base_dir . '/cache/portal/en.php');
         Assert::assertFileExists($base_dir . '/cache/portal/hu.php');
+    }
+
+    public function test_should_initialize_logger_with_stdout_if_empty()
+    {
+        LanguageBatchBo::setLogger(null);
+
+        Assert::assertInstanceOf(StdoutLogger::class, LanguageBatchBo::getLogger());
     }
 
     protected function tearDown()
