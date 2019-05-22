@@ -6,6 +6,7 @@ use Exception;
 use Language\Generation\GenerateLanguageFileFlash;
 use Language\Generation\GenerateLanguageFilePortal;
 use Language\Logger\StdoutLogger;
+use Language\Persistence\FilePersistence;
 use Language\Validator\ApiResponseValidator;
 
 /**
@@ -24,9 +25,10 @@ class LanguageBatchBo
         $logger = new StdoutLogger();
         $validator = new ApiResponseValidator();
         $root_path = Config::get('system.paths.root');
+        $persistence = new FilePersistence($root_path . '/cache');
         $applications = Config::get('system.translated_applications');
 
-        $generateLanguageFilePortal = new GenerateLanguageFilePortal($logger, $validator, $root_path, $applications);
+        $generateLanguageFilePortal = new GenerateLanguageFilePortal($logger, $validator, $persistence, $applications);
         $generateLanguageFilePortal->generate();
     }
 
@@ -43,11 +45,13 @@ class LanguageBatchBo
         $validator = new ApiResponseValidator();
         // List of the applets [directory => applet_id].
         $root_path = Config::get('system.paths.root');
+        $persistence = new FilePersistence($root_path . '/cache/flash');
         $applets = [
             'memberapplet' => 'JSM2_MemberApplet',
         ];
 
-        $generateLanguageFileFlash = new GenerateLanguageFileFlash($logger, $validator, $root_path, $applets);
+
+        $generateLanguageFileFlash = new GenerateLanguageFileFlash($logger, $validator, $persistence, $applets);
         $generateLanguageFileFlash->generate();
     }
 }

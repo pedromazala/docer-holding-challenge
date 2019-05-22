@@ -5,6 +5,7 @@ namespace Language\Generation;
 use Exception;
 use Language\ApiCall;
 use Language\Logger\Logger;
+use Language\Persistence\Persistence;
 use Language\Validator\Validator;
 
 class GenerateLanguageFilePortal implements GenerateLanguageFile
@@ -13,16 +14,16 @@ class GenerateLanguageFilePortal implements GenerateLanguageFile
     private $logger;
     /** @var Validator */
     private $validator;
-    /** @var string */
-    private $root_path;
+    /** @var Persistence */
+    private $persistence;
     /** @var array */
     private $applications;
 
-    public function __construct(Logger $logger, Validator $validator, string $root_path, array $applications)
+    public function __construct(Logger $logger, Validator $validator, Persistence $persistence, array $applications)
     {
         $this->logger = $logger;
         $this->applications = $applications;
-        $this->root_path = $root_path;
+        $this->persistence = $persistence;
         $this->validator = $validator;
     }
 
@@ -81,19 +82,8 @@ class GenerateLanguageFilePortal implements GenerateLanguageFile
         }
 
         // If we got correct data we store it.
-        $destination = $this->getLanguageCachePath($application) . $language . '.php';
-        // If there is no folder yet, we'll create it.
-        if (!is_dir(dirname($destination))) {
-            mkdir(dirname($destination), 0755, true);
-        }
+        $saved = $this->persistence->save("/{$application}/{$language}.php", $languageResponse['data']);
 
-        $result = file_put_contents($destination, $languageResponse['data']);
-
-        return (bool)$result;
-    }
-
-    private function getLanguageCachePath(string $application): string
-    {
-        return $this->root_path . '/cache/' . $application . '/';
+        return $saved;
     }
 }

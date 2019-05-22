@@ -5,6 +5,7 @@ namespace Language\Generation;
 use Exception;
 use Language\ApiCall;
 use Language\Logger\Logger;
+use Language\Persistence\Persistence;
 use Language\Validator\Validator;
 
 class GenerateLanguageFileFlash implements GenerateLanguageFile
@@ -13,16 +14,16 @@ class GenerateLanguageFileFlash implements GenerateLanguageFile
     private $logger;
     /** @var Validator */
     private $validator;
-    /**@var string */
-    private $root_path;
+    /**@var Persistence */
+    private $persistence;
     /** @var array */
     private $applets;
 
-    public function __construct(Logger $logger, Validator $validator, string $root_path, array $applets)
+    public function __construct(Logger $logger, Validator $validator, Persistence $persistence, array $applets)
     {
         $this->logger = $logger;
         $this->applets = $applets;
-        $this->root_path = $root_path;
+        $this->persistence = $persistence;
         $this->validator = $validator;
     }
 
@@ -54,15 +55,15 @@ class GenerateLanguageFileFlash implements GenerateLanguageFile
 
         $this->logger->print(' - Available languages: ' . implode(', ', $languages) . "" . PHP_EOL);
 
-        $path = $this->getLanguageCachePath();
         foreach ($languages as $language) {
             $xmlContent = $this->getAppletLanguageFile($appletLanguageId, $language);
-            $xmlFile = $path . '/lang_' . $language . '.xml';
-            if (strlen($xmlContent) != file_put_contents($xmlFile, $xmlContent)) {
-                throw new Exception('Unable to save applet: (' . $appletLanguageId . ') language: (' . $language . ') xml (' . $xmlFile . ')!');
+            $saved = $this->persistence->save('/lang_' . $language . '.xml', $xmlContent);
+            $file = $this->persistence->getLastSavedFilepath();
+            if (!$saved) {
+                throw new Exception('Unable to save applet: (' . $appletLanguageId . ') language: (' . $language . ') xml (' . $file . ')!');
             }
 
-            $this->logger->print(" OK saving $xmlFile was successful." . PHP_EOL);
+            $this->logger->print(" OK saving {$file} was successful." . PHP_EOL);
         }
     }
 
@@ -127,10 +128,5 @@ class GenerateLanguageFileFlash implements GenerateLanguageFile
         }
 
         return $result['data'];
-    }
-
-    private function getLanguageCachePath(): string
-    {
-        return $this->root_path . '/cache/flash';
     }
 }
